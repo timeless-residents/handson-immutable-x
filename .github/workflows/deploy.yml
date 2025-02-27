@@ -45,16 +45,24 @@ jobs:
           
       - name: Update config.js with environment variables
         run: |
-          cat > dist/config-env.js << EOF
-          <script>
-          // Site configuration
-          window.imxConfig = {
-            apiUrl: '${{ secrets.IMMUTABLE_X_API_URL || 'https://api.sandbox.immutable.com/v1' }}',
-            publishableKey: '${{ secrets.IMMUTABLE_X_PUBLISHABLE_KEY }}'
-          };
-          </script>
-          EOF
-          sed -i 's|<!-- Include configuration script first -->|<!-- Include configuration script first -->\n'"$(cat dist/config-env.js)"'|' dist/index.html
+          # Create config script content
+          echo '<script>' > dist/config-env.js
+          echo '// Site configuration' >> dist/config-env.js
+          echo 'window.imxConfig = {' >> dist/config-env.js
+          echo '  apiUrl: '"'${{ secrets.IMMUTABLE_X_API_URL || 'https://api.sandbox.immutable.com/v1' }}'"',' >> dist/config-env.js
+          echo '  publishableKey: '"'${{ secrets.IMMUTABLE_X_PUBLISHABLE_KEY }}'"'' >> dist/config-env.js
+          echo '};' >> dist/config-env.js
+          echo '</script>' >> dist/config-env.js
+          
+          # Insert config into HTML file
+          awk '
+          {
+            print $0
+            if ($0 ~ /<!-- Include configuration script first -->/) {
+              system("cat dist/config-env.js")
+            }
+          }' dist/index.html > dist/temp.html
+          mv dist/temp.html dist/index.html
         
       - name: Deploy to GitHub Pages
         id: deployment
