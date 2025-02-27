@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main  # または master, depending on your default branch
+  workflow_dispatch:  # Manual trigger option
 
 jobs:
   build-and-deploy:
