@@ -1,0 +1,16 @@
+{
+  "name": "handson-immutable-x",
+  "version": "1.0.0",
+  "main": "immutable-api.js",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "ethers": "5.7.2",
+    "node-fetch": "^2.6.9"
+  },
+  "scripts": {
+    "start": "node -r dotenv/config immutable-api.js",
+    "build": "mkdir -p dist && cp index.html dist/ && cp config.js dist/",
+    "dev": "npx http-server -p 3000"
+  }
+}

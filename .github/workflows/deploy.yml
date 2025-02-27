@@ -1,0 +1,46 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches:
+      - main  # または master, depending on your default branch
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'yarn'
+          
+      - name: Install dependencies
+        run: yarn install
+        
+      - name: Build project
+        run: yarn build
+        env:
+          IMMUTABLE_X_API_URL: ${{ secrets.IMMUTABLE_X_API_URL }}
+          IMMUTABLE_X_PUBLISHABLE_KEY: ${{ secrets.IMMUTABLE_X_PUBLISHABLE_KEY }}
+          
+      - name: Update config.js with environment variables
+        run: |
+          cat > dist/config-env.js << EOF
+          // Auto-generated config from GitHub Actions
+          window.imxConfig = {
+            apiUrl: '${{ secrets.IMMUTABLE_X_API_URL || 'https://api.sandbox.immutable.com/v1' }}',
+            publishableKey: '${{ secrets.IMMUTABLE_X_PUBLISHABLE_KEY }}'
+          };
+          EOF
+          cat dist/config-env.js >> dist/index.html
+        
+      - name: Deploy to GitHub Pages
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: dist
+          branch: gh-pages
