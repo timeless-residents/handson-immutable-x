@@ -46,13 +46,15 @@ jobs:
       - name: Update config.js with environment variables
         run: |
           cat > dist/config-env.js << EOF
-          // Auto-generated config from GitHub Actions
+          <script>
+          // Site configuration
           window.imxConfig = {
             apiUrl: '${{ secrets.IMMUTABLE_X_API_URL || 'https://api.sandbox.immutable.com/v1' }}',
             publishableKey: '${{ secrets.IMMUTABLE_X_PUBLISHABLE_KEY }}'
           };
+          </script>
           EOF
-          cat dist/config-env.js >> dist/index.html
+          sed -i 's|<!-- Include configuration script first -->|<!-- Include configuration script first -->\n'"$(cat dist/config-env.js)"'|' dist/index.html
         
       - name: Deploy to GitHub Pages
         id: deployment
