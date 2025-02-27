@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Immutable X Direct Connect</title>
+  <meta name="description" content="Simple example of connecting to Immutable X API and MetaMask wallet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/water.css@2/out/water.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      margin: 10px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    #status {
+      margin: 20px 0;
+      padding: 10px;
+      border: 1px solid #ddd;
+      background-color: #f9f9f9;
+      min-height: 100px;
+    }
+    pre {
+      background-color: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      overflow-x: auto;
+    }
+    .footer {
+      margin-top: 40px;
+      text-align: center;
+      font-size: 0.8em;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>Immutable X Simple API Connect</h1>
+  
+  <div class="actions">
+    <button id="connectButton">Connect Wallet</button>
+    <button id="getCollectionsButton">Get Collections</button>
+  </div>
+  
+  <div id="status">Status will appear here...</div>
+  
+  <pre id="output"></pre>
+
+  <div class="footer">
+    <p>GitHub Pages Demo | <a href="https://github.com/timeless-residents/handson-immutable-x" target="_blank">View on GitHub</a></p>
+  </div>
+
+  <!-- Include configuration script first -->
+  <script>
+    // Global configuration that can be overridden by deployment environment
+    window.imxConfig = {
+      apiUrl: 'https://api.sandbox.immutable.com/v1',
+      publishableKey: 'YOUR_PUBLISHABLE_KEY'
+    };
+  </script>
+  
+  <!-- Include required libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+  <script src="config.js"></script>
+  
+  <script>
+    // DOM elements
+    const statusElement = document.getElementById('status');
+    const outputElement = document.getElementById('output');
+    const connectButton = document.getElementById('connectButton');
+    const getCollectionsButton = document.getElementById('getCollectionsButton');
+    
+    // Use configuration from config.js
+    let walletAddress = null;
+
+    // Connect to MetaMask
+    async function connectWallet() {
+      try {
+        statusElement.textContent = 'Connecting to MetaMask...';
+        
+        if (!window.ethereum) {
+          statusElement.textContent = 'MetaMask not installed. Please install MetaMask to continue.';
+          return;
+        }
+        
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        await window.ethereum.request({ method: 'eth_requestAccounts' });
+        
+        const signer = provider.getSigner();
+        walletAddress = await signer.getAddress();
+        
+        statusElement.textContent = `Connected with wallet: ${walletAddress}`;
+        outputElement.textContent = `Wallet Address: ${walletAddress}`;
+      } catch (error) {
+        statusElement.textContent = `Error connecting to wallet: ${error.message}`;
+        console.error(error);
+      }
+    }
+    
+    // Fetch collections using direct API call instead of SDK
+    async function getCollections() {
+      try {
+        statusElement.textContent = 'Fetching collections...';
+        outputElement.textContent = '';
+        
+        const response = await fetch(`${config.apiUrl}/collections?page_size=5`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-immutable-publishable-key': config.publishableKey
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`API Error: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        statusElement.textContent = `Found ${data.result.length} collections`;
+        
+        const formatted = JSON.stringify(data.result, null, 2);
+        outputElement.textContent = formatted;
+      } catch (error) {
+        statusElement.textContent = `Error fetching collections: ${error.message}`;
+        console.error(error);
+      }
+    }
+    
+    // Add event listeners
+    connectButton.addEventListener('click', connectWallet);
+    getCollectionsButton.addEventListener('click', getCollections);
+  </script>
+</body>
+</html>// Auto-generated config from GitHub Actions
+window.imxConfig = {
+  apiUrl: 'https://api.sandbox.immutable.com/v1',
+  publishableKey: 'pk_imapik-test-f3zfaLUYosIaCyoE0K0C'
+};
